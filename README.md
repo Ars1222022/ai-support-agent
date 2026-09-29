@@ -49,6 +49,62 @@ Webbappen byggs med Streamlit. Öppna fliken **Kurssteg** och prova stegen:
 
 Supportinformationen i `data/support_docs.txt` är påhittad demodata. Appen visar källorna som användes. Utan API-nyckel fungerar indexering, retrieval, den enkla LangGraph-grafen och offline-evals. LLM-svar, rollpipeline och Phoenix-traces kräver ett fungerande LLM-anrop.
 
+## Teori: hur delarna hänger ihop
+
+### Docker, image, container och Compose
+
+En **Dockerfile** beskriver hur projektets miljö byggs. Resultatet är en **image** (en färdig mall). När Docker startar imagen körs en **container**. `docker-compose.yml` beskriver hur flera tjänster ska starta och prata med varandra:
+
+| Begrepp | I det här projektet |
+| --- | --- |
+| Image | Appens Python-miljö, Chroma-imagen och Phoenix-imagen. |
+| Container | En körande tjänst byggd från en image. |
+| Docker Compose | Startar appen, Chroma och Phoenix tillsammans. |
+| Port | Gör en tjänst nåbar från datorns webbläsare, till exempel appen på 8501. |
+| Volym eller bind mount | Sparar data utanför containerns tillfälliga skrivlager. Projektets `.runtime/` innehåller modeller, Chroma-data och Phoenix-data. |
+| Miljövariabel | Inställning som en API-nyckel. `.env` matar in nycklar lokalt utan att skriva dem i koden. |
+
+Containrar delar värddatorns kärna men isolerar processer och paket. Docker gör Python-miljön mer lik mellan datorer; Docker garanterar inte att varje dator har samma prestanda eller tillgängligt diskutrymme.
+
+### RAG: hitta källor innan modellen svarar
+
+RAG står för **Retrieval-Augmented Generation**: hämta relevant information och ge den till språkmodellen som underlag. I den här appen ser flödet ut så här:
+
+```mermaid
+flowchart LR
+    D[Supportdokument] --> C[Dela i textavsnitt]
+    C --> E[Skapa embeddings]
+    E --> DB[(Chroma-index)]
+    Q[Fråga] --> QE[Embedding för frågan]
+    QE --> R[Hämta relevanta avsnitt]
+    DB --> R
+    R --> L[Groq eller OpenAI formulerar svar]
+    Q --> L
+    L --> A[Svar med källor]
+```
+
+En **embedding** är en numerisk representation av text som gör att systemet kan jämföra betydelse, inte bara identiska ord. Sentence Transformers skapar representationerna. Chroma lagrar avsnitten och hittar dem som ligger närmast frågan. Den hämtade texten blir sedan kontext till språkmodellen. Sökning och embedding kan köras utan API-nyckel; API-nyckeln behövs för att låta Groq eller OpenAI formulera svaret.
+
+I Docker-läget kör Chroma som en egen Compose-tjänst och appen ansluter via HTTP. I lokalt läge använder appen en inbäddad Chroma-databas i `.runtime/chroma/`. RAG-idén är densamma i båda lägena.
+
+### LangGraph: gör arbetsflödet synligt
+
+LangGraph beskriver ett arbetsflöde som **noder** och **kanter**. En nod gör en uppgift och kan läsa eller ändra delat **state**. En kant bestämmer nästa steg; en villkorlig kant väljer väg utifrån state. Appens enkla graf klassificerar exempelvis en fråga som retur, frakt eller allmän. RAG-grafen kan välja mellan att svara direkt på en hälsning eller hämta källor före ett svar.
+
+Researcher → writer → reviewer visar hur roller kan delas upp i följd. I denna workshop är det en pedagogisk graf med ett gemensamt flöde, inte självständiga agenter som själva planerar, använder verktyg och behåller minne.
+
+### Evals: kontrollera vad systemet gör
+
+En **eval** är en upprepad kontroll med frågor där man vet vilken information som borde hittas. Appens fyra offlinefall kontrollerar att förväntade ord/fakta finns i hämtad kontext. Det hjälper till att upptäcka vissa fel i dokumentindex och retrieval.
+
+Kontrollerna bedömer inte om ett genererat svar är korrekt, välformulerat eller helt troget källan. De är därför en introduktion till utvärdering, inte en professionell kvalitetsmätning. Mer avancerad utvärdering kan jämföra svar med referenssvar, mäta relevans och använda en separat LLM-bedömare, vilket också kräver mer konfiguration och ibland fler API-anrop.
+
+### Tracing och vägen vidare
+
+**Tracing** följer ett anrop genom olika steg och visar exempelvis indata, utdata och tidsåtgång. Phoenix tar emot traces från OpenAI-kompatibla LLM-anrop i appen. Om ingen LLM-fråga har lyckats finns det inga sådana traces att visa. Använd bara påhittade kursdata i demon; traces kan innehålla fråge- och svarstext.
+
+Docker Compose samordnar projektets få tjänster på en dator. Kubernetes är ett senare orkestreringssystem för att driva och skala containers i en större miljö. Den här workshopen förklarar kopplingen på konceptnivå, men skapar inget Kubernetes-kluster.
+
 ## Förutsättningar
 
 ### Docker Compose
