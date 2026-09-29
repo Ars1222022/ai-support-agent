@@ -1,0 +1,14 @@
+{
+  "name": "AI Support Agent · Lektion 7",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "lesson7",
+  "runServices": ["lesson7", "chroma", "phoenix"],
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [8501, 6006, 8000],
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "ms-python.vscode-pylance"]
+    }
+  }
+}

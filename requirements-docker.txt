@@ -1,0 +1,3 @@
+-r requirements.txt
+# The Chroma server runs in its own container; the app needs only the HTTP client.
+chromadb-client==1.0.20

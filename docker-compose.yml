@@ -1,0 +1,63 @@
+services:
+  lesson7:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      PHOENIX_COLLECTOR_ENDPOINT: http://phoenix:6006
+      CHROMA_HOST: chroma
+      CHROMA_PORT: "8000"
+      HF_HOME: /root/.cache/huggingface
+      OLLAMA_URL: http://ollama:11434
+    volumes:
+      - .:/app
+      - ./.runtime/huggingface:/root/.cache/huggingface
+    mem_limit: 2g
+    cpus: 2.0
+    depends_on:
+      chroma:
+        condition: service_started
+    restart: unless-stopped
+
+  chroma:
+    image: chromadb/chroma:1.0.20
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.runtime/chroma:/data
+    mem_limit: 512m
+    cpus: 1.0
+    restart: unless-stopped
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    ports:
+      - "6006:6006"
+    environment:
+      PHOENIX_HOST: 0.0.0.0
+      PHOENIX_PORT: 6006
+      PHOENIX_WORKING_DIR: /root/.phoenix
+    volumes:
+      - ./.runtime/phoenix:/root/.phoenix
+    mem_limit: 768m
+    cpus: 1.0
+    restart: unless-stopped
+
+  # Optional course bonus: start only with `--profile ollama`.
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./.runtime/ollama:/root/.ollama
+    mem_limit: 5g
+    cpus: 4.0
+    restart: unless-stopped
+

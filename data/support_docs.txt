@@ -1,0 +1,22 @@
+# Demodata för kursövningen. Ändra gärna reglerna och bygg om indexet.
+
+## Retur och byte
+Varor kan returneras inom 30 dagar från leveransdatum. Produkten måste vara i originalförpackning och i obrutet skick.
+
+## Leveranstider
+Standardleverans tar 3–5 arbetsdagar inom Sverige. Expressleverans tar 1–2 arbetsdagar.
+
+## Betalningsalternativ
+Vi accepterar Visa, Mastercard, Swish, Klarna och faktura med 30 dagars betalningstid.
+
+## Garanti
+Alla produkter har 2 års garanti mot tillverkningsfel.
+
+## Kontakt
+Kundsupport: support@foretaget.se. Telefon: 010-123 45 67 (vardagar 08:00–17:00).
+
+## Fraktkostnad
+Standardfrakt kostar 49 kr. Expressfrakt kostar 198 kr totalt, varav 149 kr är expresspåslag. Fri frakt vid köp över 500 kr.
+
+## Presentkort
+Presentkort gäller i 12 månader och kan inte bytas mot kontanter.

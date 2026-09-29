@@ -1,0 +1,4 @@
+-r requirements.txt
+chromadb==1.0.20
+# Phoenix server is local-only; the Docker setup uses Phoenix's official image.
+arize-phoenix==11.28.0
